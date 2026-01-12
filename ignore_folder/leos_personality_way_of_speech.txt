@@ -1,0 +1,121 @@
+Hello, I hope all is well with you.
+
+A little bit about me:
+My name is Leonardo Meireles, and I'm currently located in São Carlos, SP, Brazil (South America).
+
+I like Brazilian strogonoff so much that when I was a university student and down on money, I used to eat it for 7 days because it's easy to make and tastes very good (bonus mention to Feijoada, which tends to make you take a nap after). In my free-time, I like to produce music, study, and train Jiu-Jitsu. I'm currently a purple belt, to be promoted to brown belt now in December, and my favourite submission is the triangle because I have long legs ;)
+
+I took a look at the position at Fly.io (https://fly.io/jobs/platform-machines/) and it sounds very interesting. I’m currently working as a Senior ML Engineer building the inference platform at iFood, and I’m confident that with my experience in ML, Data Science, and Engineering — from building models to creating high‑performance Golang inference platforms to serve them — I’d be a strong fit for this role.
+
+For context, some relevant work I’ve led:
+
+Causal inference models and a framework at iFood that save millions each month
+
+A Golang inference gateway/middleware for serving iFood’s models
+
+Data engineering and governance work for Nubank’s PJ (Companies) Credit Card team
+
+A little bit about my current work at iFood
+My current role has strong synergies with the Platform Machines description. Even though I only have about 11 months of experience with Go, I'd say my work experience—paired with my ability to adapt and make the best architectural decisions for the situation—has led to a lot of success in building iFood's ML Gateway.
+
+This project, in a nutshell, is "The ML System Interface for Online Serving." Its purpose is to serve as a "middleware" between the Data Scientists' Model Serving Endpoints (e.g., SageMaker Endpoints) and the existing services from iFood.
+
+One of the main features of ML Gateway is that it also works as a request enricher, fetching data from our internal services blazingly fast. This enables data scientists to have a better data contract and takes a load off our backend engineers because all they need is the data contract they will receive after making requests to their ML Gateways.
+
+This project's success depends on two main criteria: incredibly fast response times and perfect resource efficiency management.
+
+Why does it need to be fast and resource efficient? iFood has around 50+ million users and 100 million delivery orders per month. One of our main ways of increasing conversion and user experience is the Recommendation Platform (RecPlat), which is responsible for ordering and selecting the best merchants/restaurantes per user (this involves huge embedding vectors, Feature Stores, and live model endpoints).
+
+Our main goal as the Inference Platform is to migrate the existing infra and simplify the existing RecPlat code, which has multiple clients and Go services to fetch information and predictions. The goal is to have RecPlat use ML Gateway as a data enricher. This simplifies the conversation between the service and the model endpoint, removing the need for complicated AWS SDK code to invoke endpoints. And this has to be very fast, with a goal of around < 20ms.
+
+Additional Info
+The last take-home I did was to return to iFood as an ML Engineer Specialist. The take-home (7 days to deliver) can be viewed at my GitHub: https://github.com/leonardo-meireles/ifood-ml-platform-hiring-test-case.
+
+My main GitHub (https://github.com/leonardo-meireles) doesn't have a lot of great recent contributions, given that I'm not having extra time for personal projects. I'm currently trying to balance being "mid" at Jiu-Jitsu, making my wife and dog happy, and shipping efficient/simple/clean Go code at work.
+
+LinkedIn: https://www.linkedin.com/in/leo-meireles-murtha/
+
+Why Fly.io?
+Remote first (remote from anywhere).
+
+Transparency in compensation. Not gonna lie, the current compensation would be able to change my life drastically here in Brazil.
+
+The nature of the work. I really like working with problems where it demands you to debug logs (k9s for the win when doom-scrolling Kubernetes pod logs to find that an env variable was missing), solve incidents, break down complex tasks into detailed implementation or discovery plans, and write RFCs/ADRs. I feel like the Platform Machines role would be a very interesting and new challenge to tackle.
+
+
+
+Leonardo Meireles <l.meireles.murtha.oliveira@gmail.com>
+Tue, Nov 4, 7:37 PM (9 days ago)
+to Christopher
+
+Hello Cristopher!
+
+I do have some initial questions regarding Fly.io:
+- I’ve been reading a lot about Fly.io’s approach to distributed infrastructure, and I find the model fascinating. Do you happen to have any internal or public materials, talks, or articles that go a bit deeper into how Fly.io’s business model works or how the company is growing? I’d love to better understand the company’s long-term vision and how it sustains its growth.
+- By the way, do you know if there are any Brazilian engineers or folks based in similar time zones on the team? I’d love to connect and get a sense of how the day-to-day collaboration works across regions and cultures.
+Pre-Work Doc Solution: 30 Day Plan (divided into 5, 15, and 30 day phases)
+
+My first thought is to tackle low hanging fruits first. In this case, the problem we usually face when dealing with this is mainly how to reduce the time to fetch the images by reducing either the base image size (by removing any unused clutter and having the tiniest or most compact image possible) and also dealing with locality and bandwidth constraints. When a request creates a container, the worker must independently traverse a network path to fetch an entire 1GB image, unpack it, and create snapshots all before the machine can boot.
+
+First Deliverable (5 Day Window)
+Problem: Locality and bandwidth constraints. Workers from distant regions use the same central registry.
+
+Task/Solution:
+• Introduce a regional caching layer for each hotspot region to keep data or images as close as possible to where they will be used or fetched.
+
+Pros:
+• Deals with locality by getting data or images closer to the region
+• Reduces image pull times
+• Improves user experience by reducing overall launch time
+
+Cons:
+• A new system to implement and maintain
+• Need to implement proper cache TTL practices to ensure availability and freshness
+• Additional infrastructure costs to maintain the service
+
+Second Deliverable (15 Day Window)
+Problem: Reduce load and optimize costs of the regional caching system.
+
+Task/Solution:
+• Create a peer to peer (P2P) distribution system that enables workers in the same region to pull image blocks from existing similar workers
+• As an extra mile, develop a smart decision tree or agent that chooses the pulling strategy for the OCI image. It could use heuristics to decide between strategies such as P2P plus regional cache, only cache, or only P2P. The agent could focus on reducing costs by favoring P2P strategies to lower caching service load.
+
+Pros:
+• Complements regional caching by increasing data availability and reducing cache load
+• Enables parallel image pulls, reducing launch times further (note: more workers do not always mean faster times; bandwidth limits still apply)
+
+Cons:
+• Must maintain a solid strategy to validate and track image versions seeded by peers
+• Need resource management safeguards to ensure peers do not lose performance while seeding
+• Must implement a fallback to fetch from the regional cache when no peers are available
+
+Third Deliverable (30 Day Window)
+Problem: VIP clients demand even faster launch times, almost near real time (NRT).
+
+Task/Solution:
+• For each region, create an intelligent ML system to predict or estimate Fly Machine demand in the coming days or weeks and use it to maintain on-demand, ready-to-start machines (idle machines for instant start)
+• Make this financially viable by introducing a new instance type, "on-demand", that covers resource costs while providing users with the fastest create/start deploys (pay more for faster deploys)
+
+Pros:
+• Improves service for VIP or key account clients by enabling almost instant machines
+• Complements the P2P strategy by using idle machines as seeding peers
+
+Cons:
+• Increased costs due to extra idle machines
+• Need to develop a strong forecasting model to minimize waste by accurately maintaining the right pool size
+
+
+Looking forward to hearing from you!
+
+Kind regards,
+
+Leonardo.
+
+Hey Christopher, hope all is well with you!
+
+Thanks for answering my questions! I'll be taking a shot at the challenge you sent. I haven't started yet because I wanted to get a more personal/individual perspective about the way-of-working and the company from possible future peers. I've contacted João Ferreira with some of my questions/concerns with the goal to understand if my current way-of-working would fit fly.io and, of course, fit in the current stage of my life.
+
+João was very kind to reply to my message, and it was what I was missing to give this a shot. I really don't like wasting people's time or mine, so that's why I wanted to get some things straight before tackling the hiring challenge.
+
+There was one more question that I'd like to ask, and it's regarding the contract type: is this a contractor/freelance role? If possible, could you explain about this?
+
